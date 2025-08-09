@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2024/09/10 22:48:09.000.757,=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/01/06 11:24:02.000.738,=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/06/26 12:44:26.000.583,=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/06/26 12:46:46.000.872,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\UnitPrincipal.pas=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/06/26 12:46:46.000.872,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\UnitPrincipal.dfm=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2025/06/26 12:55:27.000.222,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Servidor.dproj=C:\Users\Inacio\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2025/06/26 20:41:43.000.449,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas</Transaction>
+    <Transaction>2025/06/26 20:47:38.000.779,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas=</Transaction>
+    <Transaction>2025/06/26 21:10:51.000.344,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas</Transaction>
+    <Transaction>2025/06/26 21:11:59.000.359,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Tormad.pas</Transaction>
+    <Transaction>2025/06/27 00:09:55.000.353,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Empresa.pas</Transaction>
+    <Transaction>2025/06/27 00:13:57.000.767,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas=</Transaction>
+    <Transaction>2025/06/27 12:20:25.000.980,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Unit1.pas</Transaction>
+    <Transaction>2025/06/27 12:22:23.000.615,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Unit1.dfm=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.dfm</Transaction>
+    <Transaction>2025/06/27 12:22:23.000.615,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Unit1.pas=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas</Transaction>
+    <Transaction>2025/06/27 17:19:09.000.642,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Senhas.pas</Transaction>
+    <Transaction>2025/06/27 19:21:27.000.757,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Torlan.pas</Transaction>
+    <Transaction>2025/06/27 19:28:39.000.879,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Romporto.pas</Transaction>
+    <Transaction>2025/06/27 19:30:19.000.544,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Rommer.pas</Transaction>
+    <Transaction>2025/06/27 19:32:27.000.508,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Produtos.pas</Transaction>
+    <Transaction>2025/06/27 21:05:31.000.224,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Madqua.pas</Transaction>
+    <Transaction>2025/06/27 21:05:31.000.207,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Madfsc.pas</Transaction>
+    <Transaction>2025/06/27 21:15:16.000.624,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Madrrr.pas</Transaction>
+    <Transaction>2025/06/27 21:18:49.000.214,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Madfsc.pas=</Transaction>
+    <Transaction>2025/08/06 18:34:29.000.458,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Geral.pas</Transaction>
+    <Transaction>2025/08/06 22:59:47.000.298,C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\Controllers\Controllers.Geral.pas=</Transaction>
+    <Transaction>2025/08/06 23:12:23.000.344,=C:\ASUNIDAC\asql\LAMAPA\SERVIDOR\DataModules\DataModule.Global.pas</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="Controllers"/>
+    <File Path="Controllers\Controllers.Empresa.pas"/>
+    <File Path="Controllers\Controllers.Madqua.pas"/>
+    <File Path="Controllers\Controllers.Madrrr.pas"/>
+    <File Path="Controllers\Controllers.Produtos.pas"/>
+    <File Path="Controllers\Controllers.Rommer.pas"/>
+    <File Path="Controllers\Controllers.Romporto.pas"/>
+    <File Path="Controllers\Controllers.Senhas.pas"/>
+    <File Path="Controllers\Controllers.Torlan.pas"/>
+    <File Path="Controllers\Controllers.Tormad.pas"/>
+    <File Path="DataModules"/>
+    <File Path="DataModules\DataModule.Global.pas"/>
+    <File Path="DataModules\DataModule.Global.dfm"/>
+    <File Path="UnitPrincipal.pas"/>
+    <File Path="UnitPrincipal.dfm"/>
+  </ProjectSortOrder>
+</BorlandProject>

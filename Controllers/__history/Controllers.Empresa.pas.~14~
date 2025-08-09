@@ -1,0 +1,75 @@
+unit Controllers.Empresa;
+
+interface
+
+uses Horse,
+     System.SysUtils,
+     System.JSON,
+     DataModule.Global;
+
+procedure RegistrarRotas;
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+implementation
+
+procedure RegistrarRotas;
+begin
+    THorse.Get('/Empresa', Listar);
+    THorse.Post('/Empresa', Inserir);
+    THorse.Put('/Empresa', Editar);
+    THorse.Delete('/Empresa', Excluir);
+end;
+
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dm : Tdm;
+begin
+try
+dm := Tdm.Create(Nil);
+Res.Send(dm.listarEmpresa).Status(200);
+finally
+FreeAndNil(dm);
+end;
+end;
+
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+    Dm: TDm;
+    body: TJSONObject;
+    nome, endereco,cgc,bairro,cidade,estado: string;
+    codigo : integer;
+begin
+    try
+        try
+            Dm := TDm.Create(nil);
+
+            body := Req.Body<TJSONObject>;
+            nome := body.GetValue<string>('nome', '');
+            endereco := body.GetValue<string>('endereco', '');
+            cgc := body.GetValue<string>('cgc', '');
+            bairro := body.GetValue<string>('bairro', '');
+            cidade := body.GetValue<string>('cidade', '');
+            estado := body.GetValue<string>('estado', '');
+            Res.Send<TJsonObject>(Dm.EmpresaInserir(codigo,nome, endereco, cgc,
+                                                    bairro, cidade, estado)).Status(201);
+        except on ex:exception do
+            Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+        end;
+    finally
+        FreeAndNil(Dm);
+    end;
+end;
+
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou editar os empresa').Status(200);
+end;
+
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou excluir os empresa').Status(200);
+end;
+
+end.

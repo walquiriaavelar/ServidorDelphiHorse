@@ -1,0 +1,50 @@
+unit Controllers.Madrrr;
+
+interface
+uses Horse,
+     System.SysUtils,
+     System.JSON,
+     DataModule.Global;
+
+procedure RegistrarRotas;
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+implementation
+
+procedure RegistrarRotas;
+begin
+    THorse.Get('/Madrrr', Listar);
+    THorse.Post('/Madrrr', Inserir);
+    THorse.Put('/Madrrr', Editar);
+    THorse.Delete('/Madrrr', Excluir);
+end;
+
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dmlamapa : Tdmlamapa;
+begin
+try
+dmlamapa := Tdmlamapa.Create(Nil);
+//Res.Send(dmlamapa.listarMadrrr).Status(200);
+finally
+FreeAndNil(dmlamapa);
+end;
+end;
+
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou inserir Madrrr').Status(201);
+end;
+
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou editar os Madrrr').Status(200);
+end;
+
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou excluir os Madrrr').Status(200);
+end;
+end.

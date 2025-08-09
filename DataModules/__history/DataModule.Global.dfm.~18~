@@ -1,0 +1,31 @@
+object Dm: TDm
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  Height = 448
+  Width = 585
+  object Conn: TFDConnection
+    Params.Strings = (
+      'Server=158.69.166.169'
+      'User_Name=sa'
+      'Database=DPM2804'
+      'Password=Wil171807'
+      'DriverID=MSSQL')
+    ConnectedStoredUsage = []
+    Connected = True
+    LoginPrompt = False
+    BeforeConnect = ConnBeforeConnect
+    Left = 96
+    Top = 56
+  end
+  object FDPhysMSSQLDriverLink1: TFDPhysMSSQLDriverLink
+    Left = 192
+    Top = 56
+  end
+  object Qry: TFDQuery
+    Connection = Conn
+    SQL.Strings = (
+      'select * from empresa')
+    Left = 136
+    Top = 120
+  end
+end

@@ -1,0 +1,103 @@
+unit Controllers.Madqua;
+
+interface
+uses Horse,
+     System.SysUtils,
+     System.JSON,
+     DataModule.Global;
+
+procedure RegistrarRotas;
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+implementation
+
+procedure RegistrarRotas;
+begin
+    THorse.Get('/Madqua', Listar);
+    THorse.Post('/Madqua', Inserir);
+    THorse.Put('/Madqua', Editar);
+    THorse.Delete('/Madqua', Excluir);
+end;
+
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dmlamapa : Tdmlamapa;
+body: TJSONObject;
+begin
+try
+dmlamapa := Tdmlamapa.Create(Nil);
+//Res.Send(dmlamapa.listarMadqua).Status(200);
+finally
+FreeAndNil(dmlamapa);
+end;
+end;
+
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dmlamapa : Tdmlamapa;
+   body: TJSONObject;
+   quacod :Integer;
+   quanom,quares: string;
+begin
+    try
+        try
+            dmlamapa := Tdmlamapa.Create(nil);
+            body := Req.Body<TJSONObject>;
+            quacod := body.GetValue<integer>('quacod',0);
+            quanom := body.GetValue<string>('quanom', '');
+            quares := body.GetValue<string>('quares', '');
+            Res.Send<TJsonObject>(dmlamapa.madquaInserir(quacod,quanom,quares)).Status(201);
+        except on ex:exception do
+            Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+        end;
+    finally
+        FreeAndNil(dmlamapa);
+    end;
+end;
+
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dmlamapa : Tdmlamapa;
+   body: TJSONObject;
+   quacod :Integer;
+   quanom,quares: string;
+begin
+    try
+        try
+            dmlamapa := Tdmlamapa.Create(nil);
+            body := Req.Body<TJSONObject>;
+            quacod := body.GetValue<integer>('quacod',0);
+            quanom := body.GetValue<string>('quanom', '');
+            quares := body.GetValue<string>('quares', '');
+            Res.Send<TJsonObject>(dmlamapa.madquaEditar(quacod,quanom,quares)).Status(201);
+        except on ex:exception do
+            Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+        end;
+    finally
+        FreeAndNil(dmlamapa);
+    end;
+end;
+
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+    dmlamapa: Tdmlamapa;
+    quacod: integer;
+begin
+    try
+        try
+            dmlamapa := Tdmlamapa.Create(nil);
+            try
+                quacod := Req.Params['codigo'].ToInteger;
+            except
+                quacod := 0;
+            end;
+            Res.Send<TJsonObject>(dmlamapa.madquaExcluir(quacod));
+        except on ex:exception do
+            Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+        end;
+    finally
+        FreeAndNil(dmlamapa);
+    end;
+end;
+
+end.

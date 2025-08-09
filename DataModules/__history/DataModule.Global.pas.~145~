@@ -1,0 +1,290 @@
+unit DataModule.Global;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, System.JSON,
+  Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async,
+  FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Comp.DataSet,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
+  FireDAC.Phys,
+  UnitPrincipal;
+
+type
+  TDmlamapa = class(TDataModule)
+    Conn: TFDConnection;
+    qry:  TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure ConnBeforeConnect(Sender: TObject);
+
+  public
+    procedure CarregarConfigDB(Connection: TFDConnection);
+
+    // ====== EMPRESA ======
+    function EmpresaListar: TJSONArray;
+    function EmpresaInserir(codigo: Integer; nome,endereco,cgc,bairro,cidade,estado: string): TJSONObject;
+    function EmpresaEditar (codigo: Integer; nome,endereco,cgc,bairro,cidade,estado: string): TJSONObject;
+    function EmpresaExcluir(codigo: Integer): TJSONObject;
+
+    // ====== MADQUA ======
+    function madquaInserir(quacod: Integer; quanom, quares: string): TJSONObject;
+    function madquaEditar (quacod: Integer; quanom, quares: string): TJSONObject;
+    function madquaExcluir(quacod: Integer): TJSONObject;
+  end;
+
+var
+  Dmlamapa: TDmlamapa;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  FireDAC.Phys.ODBCBase; // <- o uses da implementation precisa vir ANTES do código
+
+  function TDmlamapa.madquaInserir(quacod: Integer; quanom, quares: string): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text :=
+      'INSERT INTO madqua (quacod, quanom, quares) '+
+      'VALUES (:quacod, :quanom, :quares)';
+    Q.ParamByName('quacod').AsInteger := quacod;
+    Q.ParamByName('quanom').AsString  := quanom;
+    Q.ParamByName('quares').AsString  := quares;  // <- nome correto do parâmetro
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('quacod', TJSONNumber.Create(quacod));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+function TDmlamapa.madquaEditar(quacod: Integer; quanom, quares: string): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text :=
+      'UPDATE madqua SET quanom = :quanom, quares = :quares '+
+      'WHERE quacod = :quacod';
+    Q.ParamByName('quacod').AsInteger := quacod;
+    Q.ParamByName('quanom').AsString  := quanom;
+    Q.ParamByName('quares').AsString  := quares;
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('quacod', TJSONNumber.Create(quacod));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+function TDmlamapa.madquaExcluir(quacod: Integer): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'DELETE FROM madqua WHERE quacod = :quacod';
+    Q.ParamByName('quacod').AsInteger := quacod;
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('quacod', TJSONNumber.Create(quacod));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+
+procedure TDmlamapa.CarregarConfigDB(Connection: TFDConnection);
+begin
+  Connection.LoginPrompt := False;
+  Connection.DriverName  := 'ODBC';
+  with Connection.Params do
+  begin
+    Clear;
+    Add('DriverID=ODBC');
+    Add('ODBCDriver=ODBC Driver 18 for SQL Server'); // ou 17
+    Add('Server=127.0.0.1,1433');                    // prefira IP,porta
+    Add('Database=FILIAL');
+    Add('User_Name=sa');
+    Add('Password=sa');
+    Add('Encrypt=no');                 // evita erro de SSL no Driver 18
+    Add('TrustServerCertificate=yes'); // opcional se Encrypt=no
+  end;
+end;
+
+procedure TDmlamapa.ConnBeforeConnect(Sender: TObject);
+begin
+  CarregarConfigDB(Conn);
+end;
+
+procedure TDmlamapa.DataModuleCreate(Sender: TObject);
+begin
+  Conn.Connected := True;
+end;
+
+function TDmlamapa.EmpresaListar: TJSONArray;
+var
+  Q: TFDQuery;
+  o: TJSONObject;
+begin
+  Result := TJSONArray.Create;
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text :=
+      'SELECT codigo, nome, endereco, cgc, bairro, cidade, estado '+
+      'FROM empresa ORDER BY codigo';
+    Q.Open;
+    while not Q.Eof do
+    begin
+      o := TJSONObject.Create;
+      o.AddPair('codigo',   TJSONNumber.Create(Q.FieldByName('codigo').AsInteger));
+      o.AddPair('nome',     Q.FieldByName('nome').AsString);
+      o.AddPair('endereco', Q.FieldByName('endereco').AsString);
+      o.AddPair('cgc',      Q.FieldByName('cgc').AsString);
+      o.AddPair('bairro',   Q.FieldByName('bairro').AsString);
+      o.AddPair('cidade',   Q.FieldByName('cidade').AsString);
+      o.AddPair('estado',   Q.FieldByName('estado').AsString);
+      Result.AddElement(o);
+      Q.Next;
+    end;
+  except
+    on E: Exception do
+    begin
+      Result.Free;
+      raise;
+    end;
+  end;
+  Q.Free;
+end;
+
+function TDmlamapa.EmpresaInserir(codigo: Integer; nome,endereco,cgc,bairro,cidade,estado: string): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text :=
+      'INSERT INTO empresa (codigo, nome, endereco, cgc, bairro, cidade, estado) '+
+      'VALUES (:codigo, :nome, :endereco, :cgc, :bairro, :cidade, :estado)';
+    Q.ParamByName('codigo').AsInteger := codigo;
+    Q.ParamByName('nome').AsString    := nome;
+    Q.ParamByName('endereco').AsString:= endereco;
+    Q.ParamByName('cgc').AsString     := cgc;
+    Q.ParamByName('bairro').AsString  := bairro;
+    Q.ParamByName('cidade').AsString  := cidade;
+    Q.ParamByName('estado').AsString  := estado;
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('codigo', TJSONNumber.Create(codigo));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+function TDmlamapa.EmpresaEditar(codigo: Integer; nome,endereco,cgc,bairro,cidade,estado: string): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text :=
+      'UPDATE empresa SET nome=:nome, endereco=:endereco, cgc=:cgc, '+
+      'bairro=:bairro, cidade=:cidade, estado=:estado '+
+      'WHERE codigo=:codigo';
+    Q.ParamByName('codigo').AsInteger := codigo;
+    Q.ParamByName('nome').AsString    := nome;
+    Q.ParamByName('endereco').AsString:= endereco;
+    Q.ParamByName('cgc').AsString     := cgc;
+    Q.ParamByName('bairro').AsString  := bairro;
+    Q.ParamByName('cidade').AsString  := cidade;
+    Q.ParamByName('estado').AsString  := estado;
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('codigo', TJSONNumber.Create(codigo));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+function TDmlamapa.EmpresaExcluir(codigo: Integer): TJSONObject;
+var
+  Q: TFDQuery;
+begin
+  Q := TFDQuery.Create(nil);
+  try
+    Q.Connection := Conn;
+    Q.SQL.Text := 'DELETE FROM empresa WHERE codigo = :codigo';
+    Q.ParamByName('codigo').AsInteger := codigo;
+    Q.ExecSQL;
+
+    Result := TJSONObject.Create;
+    Result.AddPair('status','ok');
+    Result.AddPair('codigo', TJSONNumber.Create(codigo));
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.AddPair('status','erro');
+      Result.AddPair('mensagem', E.Message);
+    end;
+  end;
+  Q.Free;
+end;
+
+end.
+

@@ -1,0 +1,78 @@
+unit Controllers.Senhas;
+
+interface
+uses Horse,
+     System.SysUtils,
+     System.JSON,
+     DataModule.Global;
+
+procedure RegistrarRotas;
+procedure ListarSenhas(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+
+implementation
+
+procedure RegistrarRotas;
+begin
+    THorse.Get('/Senhas', Listar);
+    THorse.Post('/Senhas', Inserir);
+    THorse.Put('/Senhas', Editar);
+    THorse.Delete('/Senhas', Excluir);
+end;
+
+procedure ListarSenhas(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var dm : Tdm;
+begin
+
+try
+dm := Tdm.Create((Nil));
+
+finally
+
+end;
+end;
+
+procedure Listar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+var
+    Dm: TDm;
+    filtro: string;
+begin
+    try
+        try
+            Dm := TDm.Create(nil);
+
+            filtro := Req.Query['filtro'];
+
+//            Res.Send<TJsonArray>(Dm.ClienteListar(filtro));
+
+        except on ex:exception do
+            Res.Send('Ocorreu um erro: ' + ex.Message).Status(500);
+        end;
+    finally
+        FreeAndNil(Dm);
+    end;
+end;
+
+procedure Inserir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+{  FQuery.SQL.Text := 'INSERT INTO Senhas (Usuario, Senha, Tipo) VALUES (:Usuario, :Senha, :Tipo)';
+  FQuery.ParamByName('Usuario').AsString := Usuario;
+  FQuery.ParamByName('Senha').AsString := Senha;
+  FQuery.ParamByName('Tipo').AsString := Tipo;
+  FQuery.ExecSQL;
+    Res.Send('Aqui vou inserir Senhas').Status(201);}
+end;
+
+procedure Editar(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou editar os Senhas').Status(200);
+end;
+
+procedure Excluir(Req: THorseRequest; Res: THorseResponse; Next: TProc);
+begin
+    Res.Send('Aqui vou excluir os Senhas').Status(200);
+end;
+end.

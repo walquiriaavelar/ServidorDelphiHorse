@@ -1,0 +1,64 @@
+unit DataModule.Global;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, System.JSON,
+  Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async,
+  FireDAC.Phys,                         // base
+  FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Comp.DataSet,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt;
+
+type
+  TDmlamapa = class(TDataModule)
+    Conn: TFDConnection;
+    qry:  TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure ConnBeforeConnect(Sender: TObject);
+  public
+    procedure CarregarConfigDB(Connection: TFDConnection);
+    // ... (suas funções)
+  end;
+
+var
+  Dmlamapa: TDmlamapa;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  FireDAC.Phys.ODBCBase;
+
+procedure TDmlamapa.CarregarConfigDB(Connection: TFDConnection);
+begin
+  Connection.LoginPrompt := False;
+  Connection.DriverName  := 'ODBC';
+  with Connection.Params do
+  begin
+    Clear;
+    Add('DriverID=ODBC');
+    Add('Server=WALQUIRIA\SQLEXPRESS');
+    Add('Database=FILIAL');
+    Add('User_Name=sa');
+    Add('Password=sa');
+    Add('Encrypt=no');
+    Add('TrustServerCertificate=Yes');
+  end;
+end;
+
+procedure TDmlamapa.ConnBeforeConnect(Sender: TObject);
+begin
+  CarregarConfigDB(Conn);
+end;
+
+procedure TDmlamapa.DataModuleCreate(Sender: TObject);
+begin
+  Conn.Connected := True;
+end;
+
+

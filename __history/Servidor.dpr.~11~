@@ -1,0 +1,19 @@
+program Servidor;
+
+uses
+  Vcl.Forms,
+  UnitPrincipal in 'UnitPrincipal.pas' {FrmPinrcipal},
+  Controllers.Tormad in 'Controllers\Controllers.Tormad.pas',
+  Controllers.Empresa in 'Controllers\Controllers.Empresa.pas',
+  DataModule.Global in 'DataModules\DataModule.Global.pas' {Dm: TDataModule},
+  Controllers.Senhas in 'Controllers\Controllers.Senhas.pas',
+  Controllers.Torlan in 'Controllers\Controllers.Torlan.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFrmPinrcipal, FrmPinrcipal);
+  Application.Run;
+end.

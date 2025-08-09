@@ -1,0 +1,963 @@
+unit DataModule.Global;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, System.JSON,
+  Data.DB,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async,
+  FireDAC.Phys, FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.Phys.ODBCBase,
+  FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client, FireDAC.Comp.DataSet,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt;
+
+type
+  TDmlamapa = class(TDataModule)
+    Conn: TFDConnection;
+    qry: TFDQuery;
+    procedure DataModuleCreate(Sender: TObject);
+    procedure ConnBeforeConnect(Sender: TObject);
+  private
+  public
+    function EmpresaInserir(codigo: integer; nome,endereco,cgc,bairro,cidade,estado: string): TJsonObject;
+    function EmpresaEditar(codigo: integer;  nome,endereco,cgc,bairro,cidade,estado: string): TJsonObject;
+    function EmpresaExcluir(codigo: integer): TJsonObject;
+
+    function madquaInserir(quacod :Integer; quanom,quares: string): TJsonObject;
+    function madquaEditar(quacod :Integer; quanom,quares: string): TJsonObject;
+    function madquaExcluir(quacod: integer): TJsonObject;
+
+    function TormadInserir(madcod :Integer; madpr1,madpr2,madpr3: double; maddes,madnbm: string): TJsonObject;
+    function TormadEditar(madcod :Integer; madpr1,madpr2,madpr3: double; maddes,madnbm: string): TJsonObject;
+    function TormadExcluir(madcod: integer): TJsonObject;
+
+    function TorageInserir(Forcod :Integer; forraz,forend,forcid,forest,forbai,forcep,fortel,forfax: string): TJsonObject;
+    function TorageEditar(Forcod :Integer; forraz,forend,forcid,forest,forbai,forcep,fortel,forfax: string): TJsonObject;
+    function TorageExcluir(Forcod: integer): TJsonObject;
+
+    function madcccInserir(madcod :Integer; maddes,madres: string): TJsonObject;
+    function madcccEditar(madcod :Integer; maddes,madres: string): TJsonObject;
+    function madcccExcluir(madcod: integer): TJsonObject;
+
+    function madrrrInserir(lancli,romaneio :Integer; landat,datsai : TDateTime;
+             lanrom,lanesp,lanmar,landes,motorista,lanqua,lancont,lanxxx,lannom,lancon,lanwhi,lanlac,placas,empresa,fornecedor,tiproma,banco,especies,quality,bl,oe,navio,expurgo,seal,invoice :string) : TJsonObject;
+
+    function madrrrEditar(lancli,romaneio :Integer; landat,datsai : TDateTime;
+             lanrom,lanesp,lanmar,landes,motorista,lanqua,lancont,lanxxx,lannom,lancon,lanwhi,lanlac,placas,empresa,fornecedor,tiproma,banco,especies,quality,bl,oe,navio,expurgo,seal,invoice :string) : TJsonObject;
+
+
+    function ListarTorlan: TJsonArray;
+    function madrrrExcluir(romaneio: integer): TJsonObject;
+
+    function TorlanInserir(lanpla,tora,lanesp,lancli,lanloc :Integer;
+                           lancir,lancom,lanmm3,desc1,desc2,topo,base,topo2,base2,lanmm3g,lanval,lantot :double;
+                           lanemi,landat,datlan :TDateTime;
+                           lancoc,empresa,landes,lansuf,lanide,upa,lantur,essencia,usuario,lanrom,autf,lanpre,nf,sisflora,fornecedor,balsa:string): TJsonObject;
+    function TorlanEditar(lanult,lanpla,tora,lanesp,lancli,lanloc :Integer;
+                           lancir,lancom,lanmm3,desc1,desc2,topo,base,topo2,base2,lanmm3g,lanval,lantot :double;
+                           lanemi,landat,datlan :TDateTime;
+                           lancoc,empresa,landes,lansuf,lanide,upa,lantur,essencia,usuario,lanrom,autf,lanpre,nf,sisflora,fornecedor,balsa:string): TJsonObject;
+    function TorlanExcluir(lanult: integer): TJsonObject;
+
+    function ListarProdutos: TJsonArray;
+    function ProdutosInserir(laness,lanbun,lanloc,lanqua : integer;
+                           Landat :TDateTime;
+                           lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+                           lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa : string): TJsonObject;
+
+    function ProdutosEditar(ultimo,laness,lanbun,lanqua,lanloc,local : integer;
+                           Landat :TDateTime;
+                           lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+                           lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa : string): TJsonObject;
+
+    function ProdutosExcluir(ultimo: integer): TJsonObject;
+
+procedure CarregarConfigDB(Connection: TFDConnection);
+    { Public declarations }
+  end;
+
+var
+  Dmlamapa: TDmlamapa;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+procedure TDmlamapa.CarregarConfigDB(Connection: TFDConnection);
+begin
+    Connection.DriverName := 'MSSQL';
+    with Connection.Params do
+    begin
+        Clear;
+        Add('DriverID=MSSQL');
+        Add('Server=WALQUIRIA\SQLEXPRESS');
+        Add('Database=FILIAL');
+        Add('User_Name=sa');
+        Add('Password=sa');
+        Add('Port=1433');
+    end;
+//    Conn.Connected := true;
+end;
+
+procedure TDmlamapa.ConnBeforeConnect(Sender: TObject);
+begin
+   CarregarConfigDB(Conn);
+end;
+
+procedure TDmlamapa.DataModuleCreate(Sender: TObject);
+begin
+   TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndLower;
+   TDataSetSerializeConfig.GetInstance.Import.DecimalSeparator := '.';
+   Conn.Connected := true;
+end;
+
+function TDmlamapa.EmpresaInserir(codigo:integer; nome,endereco,cgc,bairro, cidade, estado: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('insert into empresa(codigo,nome,endereco, cgc,');
+        qry.SQL.Add('bairro, cidade, estado)');
+        qry.SQL.Add('values(:codigo, :nome, :endereco, :cgc,');
+        qry.SQL.Add(':bairro, :cidade, :estado);');
+        qry.ParamByName('codigo').Value := codigo;
+        qry.ParamByName('nome').Value := nome;
+        qry.ParamByName('endereco').Value := endereco;
+        qry.ParamByName('cgc').Value := cgc;
+        qry.ParamByName('bairro').Value := bairro;
+        qry.ParamByName('cidade').Value := cidade;
+        qry.ParamByName('estado').Value := estado;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.ListarProdutos: TJsonArray;
+var
+    qry: TFDQuery;
+    i: integer;
+    ped: TJSONObject;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+        qry.SQL.Add('select landat,certificada,lanbun,adkd,lanesp,lanlar,lancom,lanqtd,lanmm3,especie,qualidade,produto,arquivo,');
+        qry.SQL.Add('fornecedor,bitola,medida,lantip,tipesp,tiplar,tipcom,conama,lansai,loteprod,loteplaina,loterep,usuario,');
+        qry.SQL.Add('espmil,larmil,commil,romaestufa,cargaestufa,milmm3,ultimo');
+        qry.SQL.Add('from produtos');
+        qry.SQL.Add('order by ultimo desc');
+        qry.Active := true;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.ListarTorlan: TJsonArray;
+var
+    qry: TFDQuery;
+    i: integer;
+    ped: TJSONObject;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+        qry.SQL.Add('select lanpla,lansuf,lanrom,lancir,lancom,base,base2,topo,topo2,lantip,lammm3g,lanmm3,');
+        qry.SQL.Add('landes,lanval,liquid,lantot,landat,lanesp,cientifico,lancli,lanult');
+        qry.SQL.Add('from torlan');
+        qry.SQL.Add('order by lanrom,lanpla,lanult');
+        qry.Active := true;
+    finally
+        FreeAndNil(qry);
+    end;
+
+end;
+
+function TDmlamapa.EmpresaEditar(codigo: integer;nome,endereco,cgc,
+                          bairro, cidade, estado: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('update empresa set nome=:nome,endereco=:endereco,cgc=:cgc,');
+        qry.SQL.Add('bairro=:bairro,cidade=:cidade,estado=:estado)');
+        qry.SQL.Add('where codigo = :codigo');
+        //  returning id_cliente
+        qry.ParamByName('codigo').Value := codigo;
+        qry.ParamByName('nome').Value := nome;
+        qry.ParamByName('endereco').Value := endereco;
+        qry.ParamByName('cgc').Value := cgc;
+        qry.ParamByName('bairro').Value := bairro;
+        qry.ParamByName('cidade').Value := cidade;
+        qry.ParamByName('estado').Value := estado;
+        qry.Active := true;
+   //     Result := TJSONObject.Create(TJsonPair.Create('codigo',codigo)); {"id_cliente": 123}
+    finally
+        FreeAndNil(qry);
+   end;
+end;
+
+function TDmlamapa.madquaInserir(quacod :Integer; quanom,quares: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('insert into madqua(quacod,quanom,quares)');
+        qry.SQL.Add('values(:quacod,:quanom,:quares);');
+        qry.ParamByName('quacod').Value := quacod;
+        qry.ParamByName('quanom').Value := quanom;
+        qry.ParamByName('quanmb').Value := quares;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TormadEditar(madcod :Integer; madpr1,madpr2,madpr3: double; maddes,madnbm: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+      qry := TFDQuery.Create(nil);
+      qry.Connection := Conn;
+
+      Qry.sql.add('UPDATE tormad SET maddes = :maddes,');
+      Qry.SQL.ADD('madpr1   = :madpr1,');
+      Qry.SQL.ADD('madpr2   = :madpr2,');
+      Qry.SQL.ADD('madpr3   = :madpr3,');
+      Qry.SQL.ADD('madnbm   = :madnbm');
+      Qry.SQL.ADD('WHERE madcod = :madcod');
+      Qry.Parambyname('madcod').Asinteger := madcod;
+      Qry.Parambyname('maddes').Asstring  := maddes;
+      Qry.Parambyname('madpr1').Asfloat   := madpr1;
+      Qry.Parambyname('madpr2').Asfloat   := madpr2;
+      Qry.Parambyname('madpr3').Asfloat   := madpr3;
+      Qry.Parambyname('madnbm').Asstring  := madnbm;
+      qry.Active := true;
+//        Result := TJSONObject.Create(TJsonPair.Create('codigo',codigo)); {"id_cliente": 123}
+    finally
+        FreeAndNil(qry);
+   end;
+end;
+
+
+function TDmlamapa.TormadInserir(madcod :Integer; madpr1,madpr2,madpr3: double; maddes,madnbm: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('insert into Tormad(madcod,maddes,madnbm,madpr1,madpr2,madpr3)');
+        qry.SQL.Add('values(:madcod,:maddes,:madnbm,:madpr1,:madpr2,:madpr3);');
+        qry.ParamByName('madcod').Value := madcod;
+        qry.ParamByName('maddes').Value := maddes;
+        qry.ParamByName('madnmb').Value := madnbm;
+        qry.ParamByName('madpr1').Value := madpr1;
+        qry.ParamByName('madpr2').Value := madpr1;
+        qry.ParamByName('madpr3').Value := madpr1;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorageInserir(Forcod :Integer; forraz,forend,forcid,forest,forbai,forcep,fortel,forfax: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('insert into torfor(Forcod,forraz,forend,forcid,forest,forbai,forcep,fortel,forfax)');
+        qry.SQL.Add('values(:Forcod,:forraz,:forend,:forcid,:forest,:forbai,:forcep,:fortel,:forfax);');
+        qry.ParamByName('forcod').Value := forcod;
+        qry.ParamByName('forraz').Value := forraz;
+        qry.ParamByName('forend').Value := forend;
+        qry.ParamByName('forcid').Value := forcid;
+        qry.ParamByName('forest').Value := forest;
+        qry.ParamByName('forbai').Value := forbai;
+        qry.ParamByName('forcep').Value := forcep;
+        qry.ParamByName('fortel').Value := fortel;
+        qry.ParamByName('forfax').Value := forfax;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madcccInserir(madcod :Integer; maddes,madres: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('insert into madccc(madcod,maddes,madres)');
+        qry.SQL.Add('values(:madcod,:madnom,:madres);');
+        qry.ParamByName('madcod').Value := madcod;
+        qry.ParamByName('maddes').Value := maddes;
+        qry.ParamByName('madres').Value := madres;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madquaEditar(quacod :Integer; quanom,quares: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('UPDATE MADQUA SET quanom = :quanom,');
+        qry.SQL.ADD('quares      = :quares');
+        qry.SQL.ADD('WHERE quacod = :quacod');
+        qry.Parambyname('quacod').Value  := quacod;
+        qry.Parambyname('quanom').Value  := quanom;
+        qry.Parambyname('quares').Value  := quares;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorageEditar(Forcod :Integer; forraz,forend,forcid,forest,forbai,forcep,fortel,forfax: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('UPDATE torage SET forraz=:forraz,forend=:forend,forcid=:forcid,forest=:forest,');
+        qry.sql.add('forbai=:forbai,forcep=:forcep,fortel=:fortel,forfax=:forfax');
+        qry.SQL.ADD('WHERE forcod = :forcod');
+        qry.Parambyname('forcod').value := forcod;
+        qry.Parambyname('forraz').value  := forraz;
+        qry.Parambyname('forend').value  := forend;
+        qry.Parambyname('forcid').value  := forcid;
+        qry.Parambyname('forest').value  := forest;
+        qry.Parambyname('forbai').value  := forbai;
+        qry.Parambyname('forcep').value  := forcep;
+        qry.Parambyname('fortel').value  := fortel;
+        qry.Parambyname('forfax').value  := forfax;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madcccEditar(madcod :Integer; maddes,madres: string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('update madccc set maddes=:maddes,madres=:madres');
+        qry.SQL.Add('where madcod = :madcod');
+        qry.ParamByName('madcod').Value := madcod;
+        qry.ParamByName('maddes').Value := maddes;
+        qry.ParamByName('madres').Value := madres;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.EmpresaExcluir(codigo: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('delete from empresa');
+        qry.SQL.Add('where codigo = :codigo');
+        qry.ParamByName('codigo').Value := codigo;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TormadExcluir(madcod: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('delete from Tormad');
+        qry.SQL.Add('where madcod = :madcod');
+        qry.ParamByName('madcod').Value := madcod;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madquaExcluir(quacod: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('delete from madqua');
+        qry.SQL.Add('where quacod = :quacod');
+        qry.ParamByName('quacod').Value := quacod;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorageExcluir(Forcod: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('delete from torage');
+        qry.SQL.ADD('WHERE forcod = :forcod');
+        qry.Parambyname('forcod').value := forcod;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madcccExcluir(madcod: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.SQL.Add('delete from madccc');
+        qry.SQL.Add('where madcod = :madcod');
+        qry.ParamByName('madcod').Value := madcod;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorlanInserir(lanpla,tora,lanesp,lancli,lanloc :Integer;
+                           lancir,lancom,lanmm3,desc1,desc2,topo,base,topo2,base2,lanmm3g,lanval,lantot :double;
+                           lanemi,landat,datlan :TDateTime;
+                           lancoc,empresa,landes,lansuf,lanide,upa,lantur,essencia,usuario,lanrom,autf,lanpre,nf,sisflora,fornecedor,balsa:string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('INSERT INTO torlan (lanpla,lancoc,lanemi,landat,lancir,lancom,lanmm3,lanesp,empresa,landes,lanval,lantot,lansuf,liquid,lanide,desc1,desc2,upa,lancli,topo,base,lanmm3g,lantur,lanloc,essencia,topo2,base2,usuario,datlan,');
+        qry.sql.add('lanrom,autf,lanpre,nf,sisflora,tora,fornecedor,balsa)');
+        qry.SQL.ADD('VALUES(:lanpla,:lancoc,:lanemi,:landat,:lancir,:lancom,:lanmm3,:lanesp,:empresa,:landes,:lanval,:lantot,:lansuf,:liquid,:lanide,:desc1,:desc2,:upa,:lancli,:topo,:base,:lanmm3g,:lantur,:lanloc,:essencia,:topo2,:base2,');
+        qry.SQL.ADD(':usuario,:datlan,:lanrom,:autf,:lanpre,:nf,:sisflora,:tora,:fornecedor,:balsa)');
+
+        Qry.parambyname('lanpla').value := lanpla;
+        Qry.parambyname('tora').value   := tora;
+        Qry.parambyname('lanesp').value := lanesp;
+        Qry.parambyname('lanloc').value := lancoc;
+        Qry.parambyname('lancli').value := lancli;
+
+        Qry.parambyname('lancir').value   := lancir;
+        Qry.parambyname('lancom').value   := lancom;
+        Qry.parambyname('desc1').value    := desc1;
+        Qry.parambyname('desc2').value    := desc2;
+        Qry.parambyname('lanmm3').value   := lanmm3;
+        Qry.parambyname('base').value     := base;
+        Qry.parambyname('base2').value    := base2;
+        Qry.parambyname('topo').value     := topo;
+        Qry.parambyname('topo2').value    := topo2;
+        Qry.parambyname('lanmm3g').value  := lanmm3g;
+        Qry.parambyname('lanval').value   := lanval;
+//        Qry.parambyname('liquid').value   := liquid;
+        Qry.parambyname('lantot').value   := lantot;
+
+        Qry.parambyname('lanemi').value    := lanemi;
+        Qry.parambyname('datlan').value    := datlan;
+
+        Qry.parambyname('lanpre').value  := lanpre;
+        Qry.parambyname('lanrom').value  := lanrom;
+        Qry.parambyname('lancoc').value  := lancoc;
+        Qry.parambyname('lanide').value  := lanide;
+        Qry.parambyname('lansuf').value  := lansuf;
+        Qry.parambyname('essencia').value := essencia;
+        Qry.parambyname('lantur').value  := lantur;
+        Qry.parambyname('empresa').value := empresa;
+        Qry.parambyname('usuario').value := usuario;
+        Qry.ParamByName('autf').value    := autf;
+        Qry.ParamByName('nf').value      := nf;
+        Qry.ParamByName('sisflora').value := sisflora;
+        Qry.parambyname('fornecedor').value := fornecedor;
+        Qry.parambyname('balsa').value      := balsa;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorlanEditar(lanult,lanpla,tora,lanesp,lancli,lanloc :Integer;
+                       lancir,lancom,lanmm3,desc1,desc2,topo,base,topo2,base2,lanmm3g,lanval,lantot :double;
+                       lanemi,landat,datlan :TDateTime;
+                       lancoc,empresa,landes,lansuf,lanide,upa,lantur,essencia,usuario,lanrom,autf,lanpre,nf,sisflora,fornecedor,balsa:string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.close;
+        qry.sql.clear;
+        qry.sql.add('update torlan set lanemi=:lanemi,');
+        qry.sql.ADD('lanrom = :lanrom,');
+        qry.sql.ADD('lancir = :lancir,');
+        qry.sql.ADD('lancom = :lancom,');
+        qry.sql.ADD('lanmm3 = :lanmm3,');
+        qry.sql.ADD('lanmm3g = :lanmm3g,');
+        qry.sql.ADD('lantip = :lantip,');
+        qry.sql.ADD('lanesp = :lanesp,');
+        qry.sql.ADD('lanlot = :lanlot,');
+        qry.sql.ADD('lancla = :lancla,');
+        qry.sql.ADD('lanmat = :lanmat,');
+        qry.sql.ADD('lanut  = :lanut,');
+        qry.sql.ADD('lancli = :lancli,');
+        qry.sql.ADD('lanemp = :lanemp,');
+        qry.sql.ADD('landes = :landes,');
+        qry.sql.ADD('lanval = :lanval,');
+        qry.sql.ADD('lantot = :lantot,');
+        qry.sql.ADD('liquid = :liquid,');
+        qry.sql.ADD('lanide = :lanide,');
+        qry.sql.ADD('lansuf = :lansuf,');
+        qry.sql.ADD('topo   = :topo,');
+        qry.sql.ADD('base   = :base,');
+        qry.sql.ADD('topo2  = :topo2,');
+        qry.sql.ADD('base2  = :base2,');
+        qry.sql.ADD('desc1  = :desc1,');
+        qry.sql.ADD('desc2  = :desc2,');
+        qry.sql.ADD('usualt = :usualt,');
+        qry.sql.ADD('datalt = :datalt,');
+        qry.sql.ADD('datlan = :datlan,');
+        qry.sql.ADD('dvpf   = :dvpf,');
+        qry.sql.ADD('tora   = :tora,');
+        qry.sql.ADD('projeto = :projeto,');
+        qry.sql.ADD('origem  = :origem,');
+        qry.sql.ADD('idfor   = :idfor,');
+        qry.sql.ADD('autf    = :autf,');
+        qry.sql.ADD('cor     = :cor,');
+        qry.sql.ADD('EMPRESA = :EMPRESA,');
+        qry.sql.ADD('obs     = :obs');
+
+        qry.SQL.Add('where lanult = :lanult');
+        qry.Parambyname('lanult').asinteger := lanult;
+
+        Qry.parambyname('lanpla').value := lanpla;
+        Qry.parambyname('tora').value   := tora;
+        Qry.parambyname('lanesp').value := lanesp;
+        Qry.parambyname('lanloc').value := lancoc;
+        Qry.parambyname('lancli').value := lancli;
+        Qry.parambyname('lancir').value   := lancir;
+        Qry.parambyname('lancom').value   := lancom;
+        Qry.parambyname('desc1').value    := desc1;
+        Qry.parambyname('desc2').value    := desc2;
+        Qry.parambyname('lanmm3').value   := lanmm3;
+        Qry.parambyname('base').value     := base;
+        Qry.parambyname('base2').value    := base2;
+        Qry.parambyname('topo').value     := topo;
+        Qry.parambyname('topo2').value    := topo2;
+        Qry.parambyname('lanmm3g').value  := lanmm3g;
+        Qry.parambyname('lanval').value   := lanval;
+        Qry.parambyname('lantot').value   := lantot;
+        Qry.parambyname('lanemi').value    := lanemi;
+        Qry.parambyname('datlan').value    := datlan;
+        Qry.parambyname('lanpre').value  := lanpre;
+        Qry.parambyname('lanrom').value  := lanrom;
+        Qry.parambyname('lancoc').value  := lancoc;
+        Qry.parambyname('lanide').value  := lanide;
+        Qry.parambyname('lansuf').value  := lansuf;
+        Qry.parambyname('essencia').value := essencia;
+        Qry.parambyname('lantur').value  := lantur;
+        Qry.parambyname('empresa').value := empresa;
+        Qry.parambyname('usuario').value := usuario;
+        Qry.ParamByName('autf').value    := autf;
+        Qry.ParamByName('nf').value      := nf;
+        Qry.ParamByName('sisflora').value := sisflora;
+        Qry.parambyname('fornecedor').value := fornecedor;
+        Qry.parambyname('balsa').value      := balsa;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.TorlanExcluir(lanult: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('delete from  torlan');
+        qry.SQL.Add('where lanult = :lanult');
+        qry.Parambyname('lanult').asinteger := lanult;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+function TDmlamapa.ProdutosInserir(laness,lanbun,lanloc,lanqua : integer;
+                   Landat :TDateTime;
+                   lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+                   lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa : string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('INSERT INTO produtos(laness,lanbun,lancom,lantip,lanmod,lanlar,lanesp,lanmm3,lanqtd,lanrom,lannom,adkd,lanrrr,lanbfs,landat,lanqua,medida,lanloc,local,produto,lanemp,fornecedor,pedido,madctr,tipesp,tiplar,tipcom,usuario,datlan,bitola,');
+        qry.sql.add('quapro,arquivo,produtofinal,espmil,larmil,commil,bitolamil,cliente,perfil,carac,empresa,lansuf,fardo,turno,tiprom,nomelocal)');
+
+        qry.SQL.ADD('VALUES(:laness,:lanbun,:lancom,:lantip,:lanmod,:lanlar,:lanesp,:lanmm3,:lanqtd,:lanrom,:lannom,:adkd,:lanrrr,:lanbfs,:landat,:lanqua,:medida,:lanloc,:local,:produto,:lanemp,:fornecedor,:pedido,:madctr,:tipesp,:tiplar,:tipcom,:usuario,');
+        qry.SQL.ADD(':datlan,:bitola,:quapro,:arquivo,:produtofinal,:espmil,:larmil,:commil,:bitolamil,:cliente,:perfil,:carac,:empresa,:lansuf,:fardo,:turno,:tiprom,:nomelocal)');
+
+        qry.parambyname('laness').value  := laness;
+        qry.parambyname('lanbun').value  := lanbun;
+        qry.parambyname('lanloc').value  := lanloc;
+        qry.parambyname('lanqua').value  := lanqua;
+//landat
+        qry.parambyname('landat').value  := landat;
+//lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+        qry.parambyname('lancom').value   := lancom;
+        qry.parambyname('lanlar').value   := lanlar;
+        qry.parambyname('lanesp').value   := lanesp;
+        qry.parambyname('lanmm3').value   := lanmm3;
+        qry.parambyname('lanqtd').value   := lanqtd;
+        qry.parambyname('milmm3').value   := milmm3;
+        qry.parambyname('espmil').value   := espmil;
+        qry.parambyname('larmil').value   := larmil;
+        qry.parambyname('commil').value   := commil;
+        qry.parambyname('lanbfs').value   := lanbfs;
+//lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa
+        qry.parambyname('lantip').value    := lantip;
+        qry.parambyname('lammod').value    := lanmod;
+        qry.parambyname('especie').value   := especie;
+        qry.parambyname('qualidade').value := qualidade;
+        qry.parambyname('certificada').value := certificada;
+        qry.parambyname('lanrom').value   := lanrom;
+        qry.parambyname('produto').value  := produto;
+        qry.parambyname('adkd').value     := adkd;
+        qry.parambyname('lanrrr').value   := lanrrr;
+        qry.parambyname('fornecedor').value := fornecedor;
+        qry.parambyname('tipesp').value   := tipesp;
+        qry.parambyname('tiplar').value   := tiplar;
+        qry.parambyname('tipcom').value   := tipcom;
+        qry.parambyname('medida').value   := medida;
+        qry.parambyname('bitola').value   := bitola;
+        qry.parambyname('arquivo').value  := arquivo;
+        qry.parambyname('usuario').value  := usuario;
+        qry.parambyname('conama').value   := conama;
+        qry.parambyname('romaestufa').value := romaestufa;
+        qry.parambyname('cargaestufa').value := cargaestufa;
+
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.ProdutosEditar(ultimo,laness,lanbun,lanqua,lanloc,local : integer;
+                           Landat :TDateTime;
+                           lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+                           lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa : string): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('Update produtos set laness = :laness,');
+        qry.sql.add('lanbun = :lanbun,');
+        qry.sql.add('lancom = :lancom,');
+        qry.sql.add('lantip = :lantip,');
+        qry.sql.add('lannom = :lannom,');
+        qry.sql.add('lanlar = :lanlar,');
+        qry.sql.add('lanesp = :lanesp,');
+        qry.sql.add('lanmm3 = :lanmm3,');
+        qry.sql.add('lanqtd = :lanqtd,');
+        qry.sql.add('lanrom = :lanrom,');
+        qry.sql.add('lanbfs = :lanbfs,');
+        qry.sql.add('landat = :landat,');
+        qry.sql.add('medida = :medida,');
+        qry.sql.add('bitola = :bitola,');
+        qry.sql.add('lanloc = :lanloc,');
+        qry.sql.add('local  = :local,');
+        qry.sql.add('lanqua = :lanqua,');
+        qry.sql.add('quapro = :quapro,');
+        qry.sql.add('pedido  = :pedido,');
+        qry.sql.add('madctr  = :madctr,');
+        qry.sql.add('produto = :produto,');
+        qry.sql.add('tiprom = :tiprom,');
+        qry.sql.add('tipesp = :tipesp,');
+        qry.sql.add('tiplar = :tiplar,');
+        qry.sql.add('tipcom = :tipcom,');
+        qry.sql.add('espmil = :espmil,');
+        qry.sql.add('larmil = :larmil,');
+        qry.sql.add('commil = :commil,');
+        qry.sql.add('bitolamil  = :bitolamil,');
+        qry.sql.add('bitolagms  = null,');
+        qry.sql.add('fornecedor = :fornecedor,');
+        qry.sql.add('cliente   = :cliente,');
+        qry.sql.add('qualidade = :qualidade,');
+        qry.sql.add('arquivo = :arquivo,');
+        qry.sql.add('adkd    = :adkd,');
+        qry.sql.add('usualt  = :usualt,');
+        qry.sql.add('datalt  = :datalt,');
+        qry.sql.add('datlan  = :datlan,');
+        qry.sql.add('lanmod  = :lanmod,');
+        qry.sql.add('lansuf  = :lansuf,');
+        qry.sql.add('fardo   = :fardo,');
+        qry.sql.add('turno   = :turno,');
+        qry.sql.add('nomelocal   = :nomelocal,');
+        qry.sql.add('carac   = :carac,');
+        qry.sql.add('perfil  = :perfil');
+        qry.sql.add('where ultimo = :ultimo');
+        qry.parambyname('ultimo').Asinteger  := ultimo;
+
+        qry.parambyname('laness').value  := laness;
+        qry.parambyname('lanbun').value  := lanbun;
+        qry.parambyname('lanloc').value  := lanloc;
+        qry.parambyname('lanqua').value  := lanqua;
+//landat
+        qry.parambyname('landat').value  := landat;
+//lancom,lanlar,lanesp,lanmm3,lanqtd,milmm3,espmil,larmil,commil,lanbfs : double;
+        qry.parambyname('lancom').value   := lancom;
+        qry.parambyname('lanlar').value   := lanlar;
+        qry.parambyname('lanesp').value   := lanesp;
+        qry.parambyname('lanmm3').value   := lanmm3;
+        qry.parambyname('lanqtd').value   := lanqtd;
+        qry.parambyname('milmm3').value   := milmm3;
+        qry.parambyname('espmil').value   := espmil;
+        qry.parambyname('larmil').value   := larmil;
+        qry.parambyname('commil').value   := commil;
+        qry.parambyname('lanbfs').value   := lanbfs;
+//lantip,lanmod,especie,qualidade,certificada,lanrom,produto,adkd,lanrrr,fornecedor,tipesp,tiplar,tipcom,medida,bitola,arquivo,usuario,conama,romaestufa,cargaestufa
+        qry.parambyname('lantip').value    := lantip;
+        qry.parambyname('lammod').value    := lanmod;
+        qry.parambyname('especie').value   := especie;
+        qry.parambyname('qualidade').value := qualidade;
+        qry.parambyname('certificada').value := certificada;
+        qry.parambyname('lanrom').value   := lanrom;
+        qry.parambyname('produto').value  := produto;
+        qry.parambyname('adkd').value     := adkd;
+        qry.parambyname('lanrrr').value   := lanrrr;
+        qry.parambyname('fornecedor').value := fornecedor;
+        qry.parambyname('tipesp').value   := tipesp;
+        qry.parambyname('tiplar').value   := tiplar;
+        qry.parambyname('tipcom').value   := tipcom;
+        qry.parambyname('medida').value   := medida;
+        qry.parambyname('bitola').value   := bitola;
+        qry.parambyname('arquivo').value  := arquivo;
+        qry.parambyname('usuario').value  := usuario;
+        qry.parambyname('conama').value   := conama;
+        qry.parambyname('romaestufa').value := romaestufa;
+        qry.parambyname('cargaestufa').value := cargaestufa;
+
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.ProdutosExcluir(ultimo: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('delete from produtos');
+        qry.SQL.Add('where ultimo = :ultimo');
+        qry.Parambyname('ultimo').asinteger := ultimo;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madrrrInserir(lancli,romaneio:Integer; landat,datsai : TDateTime;
+             lanrom,lanesp,lanmar,landes,motorista,lanqua,lancont,lanxxx,lannom,lancon,lanwhi,lanlac,placas,empresa,fornecedor,tiproma,banco,especies,quality,bl,oe,navio,expurgo,seal,invoice :string) : TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('INSERT INTO madrrr (lanrom,lancli,lanesp,landat,lanmar,landes,motorista,lanqua,lancont,lanxxx,lannom,lancon,lanwhi,lanlac,placas,romaneio,datsai,empresa,fornecedor,tiproma,banco,especies,quality,bl,oe,navio,expurgo,seal,invoice)');
+        qry.SQL.add('VALUES(:lanrom,:lancli,:lanesp,:landat,:lanmar,:landes,:motorista,:lanqua,:lancont,:lanxxx,:lannom,:lancon,:lanwhi,:lanlac,:placas,:romaneio,:datsai,:empresa,:fornecedor,:tiproma,:banco,:especies,:quality,:bl,:oe,:navio,:expurgo,:seal,:invoice)');
+        qry.parambyname('lanrom').value   := lanrom;
+        qry.parambyname('lancli').value  := lancli;
+        qry.parambyname('lanesp').value   := lanesp;
+        qry.parambyname('landat').Asdate     := landat;
+        qry.parambyname('lanmar').value   := lanmar;
+        qry.parambyname('lannom').value   := lannom;
+        qry.parambyname('placas').value   := placas;
+        qry.parambyname('landes').value   := landes;
+        qry.parambyname('motorista').value := motorista;
+        qry.parambyname('lanqua').value   := lanqua;
+        qry.parambyname('lanlac').value   := lanlac;
+        qry.parambyname('lancon').value   := lancon;
+        qry.parambyname('lanwhi').value   := lanwhi;
+        qry.parambyname('lancont').value  := lancont;
+        qry.parambyname('lanxxx').value   := lanxxx;
+        qry.parambyname('lannom').value   := lannom;
+        qry.parambyname('romaneio').value := romaneio;
+        qry.parambyname('datsai').value   := datsai;
+        qry.parambyname('landat').value   := landat;
+        qry.parambyname('empresa').value    := empresa;
+        qry.parambyname('fornecedor').value := fornecedor;
+        qry.parambyname('tiproma').value    := tiproma;
+        qry.parambyname('banco').value      := banco;
+        qry.parambyname('especies').value   := especies;
+        qry.parambyname('quality').value    := quality;
+        qry.parambyname('bl').value         := bl;
+        qry.parambyname('oe').value         := oe;
+        qry.parambyname('navio').value      := navio;
+        qry.parambyname('expurgo').value    := expurgo;
+        qry.parambyname('seal').value       := seal;
+        qry.parambyname('invoice').value    := invoice;
+
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madrrrEditar(lancli,romaneio :Integer; landat,datsai : TDateTime;
+             lanrom,lanesp,lanmar,landes,motorista,lanqua,lancont,lanxxx,lannom,lancon,lanwhi,lanlac,placas,empresa,fornecedor,tiproma,banco,especies,quality,bl,oe,navio,expurgo,seal,invoice :string) : TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('update madrrr set lancli=:lancli,lanesp=:lanesp,landat=:landat,lanmar=:lanmar,landes=:landes,motorista=:motorista,lanqua=:lanqua,lancont=:lancont,lanxxx=:lanxxx,lannom=:lannom,lancon=:lancon,lanwhi=:lanwhi,invoice=:invoice,');
+        qry.sql.add('lanlac=:lanlac,placas=:placas,romaneio=:romaneio,datsai=:datsai,empresa=:empresa,fornecedor=:fornecedor,tiproma=:tiproma,banco=:banco,especies=:especies,quality=:quality,bl=:bl,oe=:oe,navio=:navio,expurgo=:expurgo,seal=:seal');
+        qry.SQL.Add('where lanrom = :lanrom');
+        qry.parambyname('lanrom').value   := lanrom;
+        qry.parambyname('lancli').value  := lancli;
+        qry.parambyname('lanesp').value   := lanesp;
+        qry.parambyname('landat').Asdate     := landat;
+        qry.parambyname('lanmar').value   := lanmar;
+        qry.parambyname('lannom').value   := lannom;
+        qry.parambyname('placas').value   := placas;
+        qry.parambyname('landes').value   := landes;
+        qry.parambyname('motorista').value := motorista;
+        qry.parambyname('lanqua').value   := lanqua;
+        qry.parambyname('lanlac').value   := lanlac;
+        qry.parambyname('lancon').value   := lancon;
+        qry.parambyname('lanwhi').value   := lanwhi;
+        qry.parambyname('lancont').value  := lancont;
+        qry.parambyname('lanxxx').value   := lanxxx;
+        qry.parambyname('lannom').value   := lannom;
+        qry.parambyname('romaneio').value := romaneio;
+        qry.parambyname('datsai').value   := datsai;
+        qry.parambyname('landat').value   := landat;
+        qry.parambyname('empresa').value    := empresa;
+        qry.parambyname('fornecedor').value := fornecedor;
+        qry.parambyname('tiproma').value    := tiproma;
+        qry.parambyname('banco').value      := banco;
+        qry.parambyname('especies').value   := especies;
+        qry.parambyname('quality').value    := quality;
+        qry.parambyname('bl').value         := bl;
+        qry.parambyname('oe').value         := oe;
+        qry.parambyname('navio').value      := navio;
+        qry.parambyname('expurgo').value    := expurgo;
+        qry.parambyname('seal').value       := seal;
+        qry.parambyname('invoice').value    := invoice;
+
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+function TDmlamapa.madrrrExcluir(romaneio: integer): TJsonObject;
+var
+    qry: TFDQuery;
+begin
+    try
+        qry := TFDQuery.Create(nil);
+        qry.Connection := Conn;
+
+        qry.sql.add('delete from madrrr');
+        qry.SQL.Add('where romaneio = :romaneio');
+        qry.parambyname('romaneio').value := romaneio;
+        qry.Active := true;
+        Result := qry.ToJSONObject;
+    finally
+        FreeAndNil(qry);
+    end;
+end;
+
+end.
